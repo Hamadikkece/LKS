@@ -1,2 +1,151 @@
-ANJAI
-GILA LAMA LAMA
+==================================================================================
+
+1. Konfigurasi Dasar Linux dengan ketentuan sesuai dengan appendix
+
+• nano /etc/network/interfaces
+
+auto ens33 
+iface ens33 inet static
+	address 192.168.43.2/24
+	gateway 192.168.4.1
+
+• nano /etc/resolv.conf
+
+nameserver 192.168.43.2
+nameserver 8.8.8.8
+search metroceria.com
+search www.metroceria.com
+search mail.metroceria.com
+search ftp.metroceria.com
+search ntp.metroceria.com
+
+• nano /etc/hosts
+
+127.0.0.1	localhost
+127.0.0.0	debian
+192.168.43.2	metroceria.com	debian
+192.168.43.2	www.metroceria.com	debian
+192.168.43.2	mail.metroceria.com	debian
+192.168.43.2	ftp.metroceria.com	debian
+192.168.43.2	ntp.metroceria.com	debian
+
+• service networking restart
+
+==================================================================================
+
+2. Menginstalasi dan mengkonfigurasi server Domain Name System (DNS) untuk domain
+   metroceria.com dengan ketentuan sebagai berikut: 
+	a) Nama file forward lookup zone adalah db.metro.
+	b) Membuat fitur alias untuk subdomain menggunakan CNAME untuk www, mail,
+	   ftp, dan ntp.
+	c) Nama file reverse lookup zone adalah db.192.
+   Pastikan pemetaan nama domain ke alamat IP dan sebaliknya berhasil dilakukan.
+
+• apt-cdrom add
+• apt-get update
+• apt-get instal bind9 apache2
+• cd /etc/bind
+• nano named.conf.default-zones
+
+zone “metroceria.com” {	 
+	Type master;			
+	File “/etc/bind/db.metro”;		
+};	
+
+zone “192.in-addr.arpa” {		
+	Type master;			
+	File “/etc/bind/db.192”;	
+};
+
+• cp db.local db.metro
+• cp db.127 db.192
+• nano db.ukk
+
+#####################################################################
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     metroceria.com. root.metroceria.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      metroceria.com.
+@       IN      A       192.168.43.2
+www     IN      CNAME	metroceria.com.
+mail     IN      CNAME	metroceria.com.
+ftp     IN      CNAME	metroceria.com.
+ntp     IN      CNAME	metroceria.com.
+#####################################################################
+
+• nano db.192
+
+#####################################################################
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     metroceria.com. root.metroceria.com. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@               IN      NS      metroceria.com.
+2.43.168        IN      PTR     metroceria.com.
+#####################################################################
+
+• service bind9 restart
+
+==================================================================================
+
+3. Menginstalasi dan mengkonfigurasi NTP Server lokal
+
+• apt-get install ntp
+• nano /etc/ntp.conf
+
+"#" pool 0, 1, 2, 3
+server 127.127.1.0
+fudge  127.127.1.0 startum 10
+
+restrict 192.168.43.0 mask 255.255.255.0 notrust
+
+broadcast 192.168.43.255
+
+• service ntp restart
+
+Control Panel - Date and Time - Internet Time
+
+==================================================================================
+
+4. Menginstalasi dan mengkonfigurasi Certificate Authority (CA)
+
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+• 
+==================================================================================
+==================================================================================
+==================================================================================
+==================================================================================
