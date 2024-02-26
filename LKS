@@ -124,28 +124,59 @@ Control Panel - Date and Time - Internet Time
 
 4. Menginstalasi dan mengkonfigurasi Certificate Authority (CA)
 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
-• 
+• mkdir /cert
+• cd /cert
+• openssl genrsa -out server.key 4096
+• nano /etc/ssl/openssl.cnf
+
+countryName_default 		= ID
+-0.organizationName_default 	= LKS2024
+
+• openssl req -new -key client.key -out client.csr
+
+Country Name (2 letter code) =
+State or Province Name (full name) (Some-State) = Lampung
+Locality Name (eg, city) [] = Metro
+Organization Name (eg, company) [LKS2018] =
+Organizational Unit Name (eg, section) [] = SMK
+Common Name (e.g. server FQDN or Your name) [] = metroceria.com
+Email Address [] = ilhamdharmayudha03@gmail.com
+
+• mkdir CA
+• cd CA
+• mkdir certs newcerts crl
+• touch index.txt
+• echo 0000 > serial
+• openssl genrsa -out CA.key 4096
+• openssl req -x509 -new -key CA.key -out CA.crt -days 7200
+• cd /cert
+• cp /etc/ssl/openssl.cnf CA.conf
+• nano CA.conf
+
+dir		=./CA
+
+certificate	= $dir/CA.crt
+
+private_key	= $dir/CA.key
+
+default_md	= sha256
+
+policy		= policy_anything
+
+• openssl ca -config CA.conf -in client.csr
+• mv CA/newcerts/00.pem client.crt
+• cd CA
+• cp CA.crt /var/www
+
 ==================================================================================
+
+
+• 
+• 
+• 
+• 
+
+
 ==================================================================================
 ==================================================================================
 ==================================================================================
