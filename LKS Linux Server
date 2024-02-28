@@ -218,6 +218,7 @@ Ganti 2 file diatas dengan file Sertifikat yang sudah kita buat diatas tadi,
 yaitu /etc/apache2/ssl/apache.ssl dan /etc/apache2/ssl/apache.crt
 
 # servive apache2 restart
+
 ==================================================================================
 
 7. Membuat user dengan nama “metro” dan “ceria” dengan sandi “12345678”.
@@ -296,6 +297,7 @@ Pastikan konfigurasi berikut diatur atau tambahkan ke dalam file:
 
 # service proftpd restart
 # ftp 192.168.43.10
+
 ==================================================================================
 
 9. Menginstalasi dan mengkonfigurasi server email menggunakan Postfix + Dovecot 
