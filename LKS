@@ -24,7 +24,6 @@ search ntp.metroceria.com
 127.0.0.1	localhost
 127.0.0.0	debian
 192.168.43.2	metroceria.com	debian
-192.168.43.2	www.metroceria.com	debian
 192.168.43.2	mail.metroceria.com	debian
 192.168.43.2	ftp.metroceria.com	debian
 192.168.43.2	ntp.metroceria.com	debian
@@ -43,7 +42,7 @@ search ntp.metroceria.com
 
 • apt-cdrom add
 • apt-get update
-• apt-get instal bind9 apache2
+• apt-get instal bind9
 • cd /etc/bind
 • nano named.conf.default-zones
 
@@ -71,12 +70,12 @@ $TTL    604800
                          604800         ; Refresh
                           86400         ; Retry
                         2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
+                         604800 )       ; Negative cache TTL
 ;
 @       IN      NS      metroceria.com.
 @       IN      A       192.168.43.2
 www     IN      CNAME	metroceria.com.
-mail     IN      CNAME	metroceria.com.
+mail    IN      CNAME	metroceria.com.
 ftp     IN      CNAME	metroceria.com.
 ntp     IN      CNAME	metroceria.com.
 #####################################################################
@@ -93,7 +92,7 @@ $TTL    604800
                          604800         ; Refresh
                           86400         ; Retry
                         2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
+                         604800 )       ; Negative cache TTL
 ;
 @               IN      NS      metroceria.com.
 2.43.168        IN      PTR     metroceria.com.
@@ -110,7 +109,7 @@ $TTL    604800
 
 "#" pool 0, 1, 2, 3
 server 127.127.1.0
-fudge  127.127.1.0 startum 10
+server fudge  127.127.1.0 startum 10
 
 restrict 192.168.43.0 mask 255.255.255.0 notrust
 
@@ -124,59 +123,230 @@ Control Panel - Date and Time - Internet Time
 
 4. Menginstalasi dan mengkonfigurasi Certificate Authority (CA)
 
-• mkdir /cert
-• cd /cert
-• openssl genrsa -out server.key 4096
-• nano /etc/ssl/openssl.cnf
+Buat beberapa direktori dan file yang dibutuhkan
+- mkdir /etc/ca
+- cp /etc/ssl/openssl.cnf   /etc/ca     
+- cd /etc/ca
+- mkdir newcerts crl
+- touch index.txt
+- echo 0000 > serial
 
-countryName_default 		= ID
--0.organizationName_default 	= LKS2024
+Edit file konfigurasi ssl
+- nano openssl.cnf
 
-• openssl req -new -key client.key -out client.csr
+     dir = /etc/ca
+     certificate = $dir/ca.crt
+     private_key = $dir/ca.key
+     default_md = sha256
+     policy = policy_anything
 
-Country Name (2 letter code) =
-State or Province Name (full name) (Some-State) = Lampung
-Locality Name (eg, city) [] = Metro
-Organization Name (eg, company) [LKS2018] =
-Organizational Unit Name (eg, section) [] = SMK
-Common Name (e.g. server FQDN or Your name) [] = metroceria.com
-Email Address [] = ilhamdharmayudha03@gmail.com
+ctrl - w - name ] - enter
 
-• mkdir CA
-• cd CA
-• mkdir certs newcerts crl
-• touch index.txt
-• echo 0000 > serial
-• openssl genrsa -out CA.key 4096
-• openssl req -x509 -new -key CA.key -out CA.crt -days 7200
-• cd /cert
-• cp /etc/ssl/openssl.cnf CA.conf
-• nano CA.conf
+     countryName_default = ID
+     stateOrProvinceName_default = Lampung
+     0.organizationName_default = Nevtik
+     organizationalUnitName_default = Nevtik
 
-dir		=./CA
+Buat Private CA
+- openssl genrsa –out ca.key 4096
 
-certificate	= $dir/CA.crt
-
-private_key	= $dir/CA.key
-
-default_md	= sha256
-
-policy		= policy_anything
-
-• openssl ca -config CA.conf -in client.csr
-• mv CA/newcerts/00.pem client.crt
-• cd CA
-• cp CA.crt /var/www
+ Buat CA Root
+- openssl req –new –key ca.key –out ca.crt –config openssl.cnf –x509 –days 7600
 
 ==================================================================================
 
-
-• 
-• 
-• 
-• 
-
+5. Install paker Curl untuk menguji Web Server
+• apt-get install curl
+• curl http://www.metroceria.com/
 
 ==================================================================================
+
+6. Menginstalasi dan mengkonfigurasi server Web menggunakan Apache untuk domain
+metroceria.com serta mengaktifkan HTTPS
+- Create /var/www/index.html default page with content specified in Appendix
+- Create /var/www/userXXX/index.html default page for 50 users with content
+specified in Appendix. Example:
+o /var/www/user001/index.html
+o /var/www/user002/index.html
+o /var/www/user003/index.html
+
+Penambahan Virtual Host (mail, ftp, ntp)
+# apt-get install apache2
+# cd /etc/apache2/sites-available/
+# ls
+# cp 000-default.conf mail.conf, ftp.conf, ntp.conf
+# nano mail.conf
+
+Yang diubah adalah ServerName, ServerAdmin, dan DocumentRoot
+ServerName mail.metroceria.com
+ServerAdmin webmaster@metroceria.com
+DocumentRoot /var/www/mail
+
+#a2ensite mail.conf
+
+Cara Membuat Halaman Website
+# cd /var/www/
+# mkdir mail
+# cd mail
+# cp /var/www/html/index.html index html
+# nano index.html
+
+HAPUS SEMUA, Ganti menjadi
+
+<!DOCTYPE html>								
+<html>										
+  <head>									
+	<title>wwww.metroceria.com</title>		
+  <body>									
+        <h1>Selamat Datang Di WebPage Master Domain www.metroceria.com</h1>						
+  </body>									
+</html>	
+
+Lakukan juga ke mail, ftp, ntp
+
+# servive apache2 restart
+
+Mengaktifkan HTTPS
+# mkdir /etc/apache2/ssl/
+# openssl req -x509 -newkey rsa:2048 -keyout /etc/apache2/ssl/apache.key -out 
+  /etc/apache2/ssl/apache.crt -nodes -days 365
+# a2enmod ssl
+# a2ensite default-ssl.conf
+# nano /etc/apache2/sites-available/default-ssl.conf
+
+Ganti 2 file diatas dengan file Sertifikat yang sudah kita buat diatas tadi, 
+yaitu /etc/apache2/ssl/apache.ssl dan /etc/apache2/ssl/apache.crt
+
+# servive apache2 restart
 ==================================================================================
+
+7. Membuat user dengan nama “metro” dan “ceria” dengan sandi “12345678”.
+# adduser metro
+# adduser ceria
+
+==================================================================================
+
+8. Menginstalasi dan mengkonfigurasi server FTP menggunakan ProFTPd agar mendukung
+SSL/TLS (FTPS) dan akses anonymous serta user FTP yaitu user “metro” dan “ceria”
+terkurung (Jail) pada home directory-nya
+
+# apt install proftpd-basic
+
+Buat cadangan konfigurasi ProFTPd yang sudah ada:
+# cp /etc/proftpd/proftpd.conf /etc/proftpd/proftpd.conf.backup
+# nano /etc/proftpd/proftpd.conf
+
+Pastikan konfigurasi berikut diatur atau tambahkan ke dalam file:
+
+# Uncomment to enable TLS module
+<IfModule mod_tls.c>
+    TLSEngine                   on
+    TLSLog                      /var/log/proftpd/tls.log
+    TLSProtocol                 TLSv1.2
+    TLSRSACertificateFile       /etc/ssl/certs/proftpd.crt
+    TLSRSACertificateKeyFile    /etc/ssl/private/proftpd.key
+    TLSVerifyClient             off
+    TLSRequired                 off
+</IfModule>
+
+# Konfigurasi Anonymous
+<Anonymous /srv/ftp>
+    User                        ftp
+    Group                       nogroup
+    UserAlias                   anonymous ftp
+    RequireValidShell           off
+    MaxClients                  10
+    DisplayLogin                welcome.msg
+    DisplayChdir                .message
+    <Directory *>
+        <Limit WRITE>
+            DenyAll
+        </Limit>
+    </Directory>
+</Anonymous>
+
+# Konfigurasi User "lks"
+<Directory /home/lks>
+    <Limit WRITE>
+        DenyAll
+    </Limit>
+    <Limit READ>
+        AllowAll
+    </Limit>
+    <Limit STOR MKD RMD DELE>
+        DenyAll
+    </Limit>
+</Directory>
+
+# Konfigurasi User "ilham"
+<Directory /home/ilham>
+    <Limit WRITE>
+        DenyAll
+    </Limit>
+    <Limit READ>
+        AllowAll
+    </Limit>
+    <Limit STOR MKD RMD DELE>
+        DenyAll
+    </Limit>
+</Directory>
+
+# openssl req -newkey rsa:2048 -nodes -keyout /etc/ssl/private/proftpd.key 
+-x509 -days 365 -out /etc/ssl/certs/proftpd.crt
+
+# service proftpd restart
+# ftp 192.168.43.10
+==================================================================================
+
+9. Menginstalasi dan mengkonfigurasi server email menggunakan Postfix + Dovecot 
+Lakukan percobaan pengiriman email dari user “metro” ke “ceria” dan sebaliknya.
+
+# apt-get install postfix dovecot-pop3d dovecot-imapd
+# maildirmake.dovecot /etc/skel/Maildir
+# nano /etc/postfix/main.cf
+
+home_mailbox = Maildir/
+
+# nano /etc/dovecot/conf.d/10-mail.conf
+
+mail_location = maildir:~/Maildir
+
+# nano /etc/dovecot/conf.d/10-auth.conf
+
+disable_plaintext_auth = no
+
+# dpkg-reconfigure postfix
+
+# service postfix restart
+# service dovecot restart
+# service bind9 restart
+
+# apt-get install telnet
+# telnet mail.metroceria.com 25
+
+mail from: metro
+rcpt to: ceria
+data 
+Semangat LKS 2024
+. 
+quit 
+
+# telnet mail.metroceria.com 110
+
+user ceria
+pass 12345678
+stat 
+retr 
+quit 
+
+==================================================================================
+
+10. Menginstalasi dan mengkonfigurasi Cacti dengan admin-user “sysnetmon” dan sandi
+“12345678” serta buat graph untuk menampilkan statistik dari CPU, Memory dan
+Interface dari LNXSVR dan LNXRTR
+
+# apt-get install cacti
+
+192.168.43.10/cacti/
+
 ==================================================================================
