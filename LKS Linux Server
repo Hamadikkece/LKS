@@ -7,7 +7,7 @@
 auto ens33 
 iface ens33 inet static
 	address 192.168.43.2/24
-	gateway 192.168.4.1
+	gateway 192.168.43.1
 
 • nano /etc/resolv.conf
 
