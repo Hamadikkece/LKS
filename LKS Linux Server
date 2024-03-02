@@ -4,29 +4,30 @@
 
 • nano /etc/network/interfaces
 
-auto ens33 
-iface ens33 inet static
-	address 192.168.43.2/24
-	gateway 192.168.43.1
+	auto ens33 
+	iface ens33 inet static
+		address 192.168.43.2/24
+		gateway 192.168.43.1
 
 • nano /etc/resolv.conf
 
-nameserver 192.168.43.2
-nameserver 8.8.8.8
-search metroceria.com
-search www.metroceria.com
-search mail.metroceria.com
-search ftp.metroceria.com
-search ntp.metroceria.com
+	nameserver 192.168.43.2
+	nameserver 8.8.8.8
+	search metroceria.com
+	search www.metroceria.com
+	search mail.metroceria.com
+	search ftp.metroceria.com
+	search ntp.metroceria.com
 
 • nano /etc/hosts
 
-127.0.0.1	localhost
-127.0.0.0	debian
-192.168.43.2	metroceria.com	debian
-192.168.43.2	mail.metroceria.com	debian
-192.168.43.2	ftp.metroceria.com	debian
-192.168.43.2	ntp.metroceria.com	debian
+	127.0.0.1	localhost
+	127.0.0.0	debian
+	192.168.43.2	metroceria.com		debian
+	192.168.43.2	www.mail.metroceria.com	debian
+	192.168.43.2	mail.metroceria.com	debian
+	192.168.43.2	ftp.metroceria.com	debian
+	192.168.43.2	ntp.metroceria.com	debian
 
 • service networking restart
 
@@ -43,60 +44,35 @@ search ntp.metroceria.com
 • apt-cdrom add
 • apt-get update
 • apt-get instal bind9
+
 • cd /etc/bind
 • nano named.conf.default-zones
 
-zone “metroceria.com” {	 
-	Type master;			
-	File “/etc/bind/db.metro”;		
-};	
-
-zone “192.in-addr.arpa” {		
-	Type master;			
-	File “/etc/bind/db.192”;	
-};
+	zone “metroceria.com” {	 
+		Type master;			
+		File “/etc/bind/db.metro”;		
+	};	
+	
+	zone “192.in-addr.arpa” {		
+		Type master;			
+		File “/etc/bind/db.192”;	
+	};
 
 • cp db.local db.metro
 • cp db.127 db.192
 • nano db.ukk
 
-#####################################################################
-;
-; BIND data file for local loopback interface
-;
-$TTL    604800
-@       IN      SOA     metroceria.com. root.metroceria.com. (
-                              2         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative cache TTL
-;
-@       IN      NS      metroceria.com.
-@       IN      A       192.168.43.2
-www     IN      CNAME	metroceria.com.
-mail    IN      CNAME	metroceria.com.
-ftp     IN      CNAME	metroceria.com.
-ntp     IN      CNAME	metroceria.com.
-#####################################################################
+	@       IN      NS      metroceria.com.
+	@       IN      A       192.168.43.2
+	www     IN      CNAME	metroceria.com.
+	mail    IN      CNAME	metroceria.com.
+	ftp     IN      CNAME	metroceria.com.
+	ntp     IN      CNAME	metroceria.com.
 
 • nano db.192
 
-#####################################################################
-;
-; BIND reverse data file for local loopback interface
-;
-$TTL    604800
-@       IN      SOA     metroceria.com. root.metroceria.com. (
-                              1         ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative cache TTL
-;
-@               IN      NS      metroceria.com.
-2.43.168        IN      PTR     metroceria.com.
-#####################################################################
+	@               IN      NS      metroceria.com.
+	2.43.168        IN      PTR     metroceria.com.
 
 • service bind9 restart
 
@@ -107,51 +83,62 @@ $TTL    604800
 • apt-get install ntp
 • nano /etc/ntp.conf
 
-"#" pool 0, 1, 2, 3
-server 127.127.1.0
-server fudge  127.127.1.0 startum 10
-
-restrict 192.168.43.0 mask 255.255.255.0 notrust
-
-broadcast 192.168.43.255
+	server 0.id.pool.ntp.org iburst
+	server 1.id.pool.ntp.org iburst
+	server 2.id.pool.ntp.org iburst
+	server 3.id.pool.ntp.org iburst
+	
+	allow 192.168.100.0/24
 
 • service ntp restart
 
-Control Panel - Date and Time - Internet Time
+	Control Panel - Date and Time - Internet Time
 
 ==================================================================================
 
 4. Menginstalasi dan mengkonfigurasi Certificate Authority (CA)
 
-Buat beberapa direktori dan file yang dibutuhkan
-- mkdir /etc/ca
-- cp /etc/ssl/openssl.cnf   /etc/ca     
-- cd /etc/ca
-- mkdir newcerts crl
-- touch index.txt
-- echo 0000 > serial
+# mkdir /cert
+# cd /cert
 
-Edit file konfigurasi ssl
-- nano openssl.cnf
+# openssl genrsa -out server.key 4096
+# nano /etc/ssl/openssl.cnf
 
-     dir = /etc/ca
-     certificate = $dir/ca.crt
-     private_key = $dir/ca.key
-     default_md = sha256
-     policy = policy_anything
+	countryName_default             = ID
+	stateOrProvinceName_default     = Lampung
+	localityName_default            = Metro
+	0.organizationName_default      = LKS2024
+	organizationalUnitName_default  = SMK
+	commonName_default              = lksilham.com
+	emailAddress_default            = admin@lksiilham.net
 
-ctrl - w - name ] - enter
+# openssl req -new -key server.key -out server.csr
+# mkdir ca
+# cd CA
 
-     countryName_default = ID
-     stateOrProvinceName_default = Lampung
-     0.organizationName_default = Nevtik
-     organizationalUnitName_default = Nevtik
+# mkdir certs newcerts crl
+# touch index.txt
+# echo 0000 > serial
 
-Buat Private CA
-- openssl genrsa –out ca.key 4096
+# openssl genrsa -out ca.key 4096
+# openssl req -x509 -new -key ca.key -out ca.crt -days 7200
+# cd /cert
 
- Buat CA Root
-- openssl req –new –key ca.key –out ca.crt –config openssl.cnf –x509 –days 7600
+# cp /etc/ssl/openssl.cnf ca.conf
+# nano ca.conf
+
+	dir             = ./ca
+	certificate     = $dir/ca.crt
+	private_key     = $dir/ca.key
+	default_md      = sha256 
+	policy          = policy_anything
+
+# openssl ca -config ca.conf -in server.csr
+# mv ca/newcerts/00.pem server.crt
+# cd /cert/ca
+# cp ca.crt /var/www
+
+	Download in Linux Client : 192.168.43.2/ca.crt
 
 ==================================================================================
 
