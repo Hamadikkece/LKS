@@ -226,64 +226,50 @@ Buat cadangan konfigurasi ProFTPd yang sudah ada:
 
 Pastikan konfigurasi berikut diatur atau tambahkan ke dalam file:
 
-# Uncomment to enable TLS module
+# Konfigurasi dasar
+ServerName                      "MetroCeria FTP Server"
+ServerType                      standalone
+DeferWelcome                    on
+
+# Pengaturan SSL/TLS
 <IfModule mod_tls.c>
-    TLSEngine                   on
-    TLSLog                      /var/log/proftpd/tls.log
-    TLSProtocol                 TLSv1.2
-    TLSRSACertificateFile       /etc/ssl/certs/proftpd.crt
-    TLSRSACertificateKeyFile    /etc/ssl/private/proftpd.key
-    TLSVerifyClient             off
-    TLSRequired                 off
+  TLSEngine                     on
+  TLSLog                        /var/log/proftpd/tls.log
+  TLSProtocol                   TLSv1.2
+  TLSRSACertificateFile         /etc/ssl/certs/ssl-cert-snakeoil.pem
+  TLSRSACertificateKeyFile      /etc/ssl/private/ssl-cert-snakeoil.key
+  TLSVerifyClient               off
+  TLSRequired                   on
 </IfModule>
 
-# Konfigurasi Anonymous
-<Anonymous /srv/ftp>
-    User                        ftp
-    Group                       nogroup
-    UserAlias                   anonymous ftp
-    RequireValidShell           off
-    MaxClients                  10
-    DisplayLogin                welcome.msg
-    DisplayChdir                .message
-    <Directory *>
-        <Limit WRITE>
-            DenyAll
-        </Limit>
-    </Directory>
+# Pengaturan Jail (terkurung)
+DefaultRoot ~
+RequireValidShell off
+
+# Akses anonymous
+<Anonymous /var/ftp>
+  User                          ftp
+  Group                         nogroup
+  UserAlias                     anonymous ftp
+  AllowOverwrite                on
+  <Limit READ WRITE>
+    DenyAll
+  </Limit>
 </Anonymous>
 
-# Konfigurasi User "lks"
-<Directory /home/lks>
-    <Limit WRITE>
-        DenyAll
-    </Limit>
-    <Limit READ>
-        AllowAll
-    </Limit>
-    <Limit STOR MKD RMD DELE>
-        DenyAll
-    </Limit>
+# Pengguna Metro dan Ceria
+<Directory /home/metro>
+  <Limit WRITE>
+    DenyAll
+  </Limit>
 </Directory>
-
-# Konfigurasi User "ilham"
-<Directory /home/ilham>
-    <Limit WRITE>
-        DenyAll
-    </Limit>
-    <Limit READ>
-        AllowAll
-    </Limit>
-    <Limit STOR MKD RMD DELE>
-        DenyAll
-    </Limit>
+<Directory /home/ceria>
+  <Limit WRITE>
+    DenyAll
+  </Limit>
 </Directory>
-
-# openssl req -newkey rsa:2048 -nodes -keyout /etc/ssl/private/proftpd.key 
--x509 -days 365 -out /etc/ssl/certs/proftpd.crt
 
 # service proftpd restart
-# ftp 192.168.43.10
 
 ==================================================================================
 
