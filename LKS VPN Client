@@ -1,1 +1,8 @@
+Menginstalasi dan mengkonfigurasi OpenVPN Client serta mengkoneksikan ke OpenVPN
+Server pada alamat IP 192.0.2.1. Pastikan koneksi ke VPN Server berhasil dilakukan.
+Gunakan perintah ping dan traceroute untuk memverifikasi koneksi dan rute dari VPN
+Client ke VPN Server
 
+# apt install openvpn
+# cp /path/to/client.ovpn /etc/openvpn/
+# openvpn /etc/openvpn/client.ovpn
